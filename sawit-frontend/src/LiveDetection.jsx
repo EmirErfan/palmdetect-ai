@@ -54,8 +54,8 @@ export default function LiveDetection() {
         formData.append('file', blob, 'frame.jpg');
         
         try {
-          // UPDATED RAILWAY URL HERE
-          const response = await fetch(`https://palm-detect-production.up.railway.app/`, {
+         
+          const response = await fetch(`https://post-silver-nobody-self.trycloudflare.com`, {
             method: 'POST',
             body: formData,
           });

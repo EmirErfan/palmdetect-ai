@@ -188,8 +188,8 @@ export default function History() {
   useEffect(() => {
     async function fetchHistory() {
       try {
-        // UPDATED RAILWAY URL HERE
-        const response = await fetch('https://palm-detect-production.up.railway.app/history/');
+   
+        const response = await fetch('https://post-silver-nobody-self.trycloudflare.com/history/');
         const data = await response.json();
         setHistoryLogs(data);
       } catch (error) {
@@ -351,8 +351,8 @@ export default function History() {
           
           {/* The Export Button restored! */}
           <a 
-            // UPDATED RAILWAY URL HERE
-            href="https://palm-detect-production.up.railway.app/export-history/" 
+         
+            href="https://post-silver-nobody-self.trycloudflare.com/export-csv/" 
             download
             className="px-3 bg-white rounded-xl shadow-sm border border-gray-100 text-primary font-bold text-[10px] flex items-center justify-center hover:bg-green-50 transition-colors"
           >

@@ -45,7 +45,7 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const response = await fetch('https://palm-detect-production.up.railway.app/dashboard-stats/');
+        const response = await fetch('https://post-silver-nobody-self.trycloudflare.com');
         const data = await response.json();
         setStats(data);
       } catch (error) {
