@@ -4,3 +4,4 @@ ultralytics
 Pillow
 sqlalchemy
 python-multipart
+opencv-python-headless
