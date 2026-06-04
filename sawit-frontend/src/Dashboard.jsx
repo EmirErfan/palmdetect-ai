@@ -45,7 +45,7 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const response = await fetch('http://localhost:8000/dashboard-stats/');
+        const response = await fetch('https://palm-detect-production.up.railway.app/dashboard-stats/');
         const data = await response.json();
         setStats(data);
       } catch (error) {

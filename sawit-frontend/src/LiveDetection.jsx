@@ -47,12 +47,15 @@ export default function LiveDetection() {
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
       canvas.toBlob(async (blob) => {
         if (!blob) return;
         const formData = new FormData();
         formData.append('file', blob, 'frame.jpg');
+        
         try {
-          const response = await fetch(`http://localhost:8000/predict/?save=${saveToDatabase}`, {
+          // UPDATED RAILWAY URL HERE
+          const response = await fetch(`https://palm-detect-production.up.railway.app/`, {
             method: 'POST',
             body: formData,
           });
@@ -95,8 +98,6 @@ export default function LiveDetection() {
     d.confidence >= threshold &&
     d.class.toLowerCase().includes('not')
   ).length;
-
-  const totalVisible = harvestCount + notHarvestCount;
 
   return (
     <div className="flex flex-col h-full overflow-hidden relative" style={{ background: '#0A0F0C' }}>

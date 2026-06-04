@@ -188,7 +188,8 @@ export default function History() {
   useEffect(() => {
     async function fetchHistory() {
       try {
-        const response = await fetch('http://127.0.0.1:8000/history/');
+        // UPDATED RAILWAY URL HERE
+        const response = await fetch('https://palm-detect-production.up.railway.app/history/');
         const data = await response.json();
         setHistoryLogs(data);
       } catch (error) {
@@ -350,7 +351,8 @@ export default function History() {
           
           {/* The Export Button restored! */}
           <a 
-            href="http://127.0.0.1:8000/export-history/" 
+            // UPDATED RAILWAY URL HERE
+            href="https://palm-detect-production.up.railway.app/export-history/" 
             download
             className="px-3 bg-white rounded-xl shadow-sm border border-gray-100 text-primary font-bold text-[10px] flex items-center justify-center hover:bg-green-50 transition-colors"
           >
