@@ -48,7 +48,6 @@ function LogSkeleton() {
   );
 }
 
-// FIXED: Extracted this into its own component to safely use 'useState'
 function LogCard({ log, idx }) {
   const statusStr = log.status || '';
   const isHarvest = statusStr.toLowerCase().includes('harvest') && !statusStr.toLowerCase().includes('not');
@@ -188,7 +187,6 @@ export default function History() {
   useEffect(() => {
     async function fetchHistory() {
       try {
-   
         const response = await fetch('https://post-silver-nobody-self.trycloudflare.com/history/');
         const data = await response.json();
         setHistoryLogs(data);
@@ -349,10 +347,9 @@ export default function History() {
             />
           </div>
           
-          {/* The Export Button restored! */}
+          {/* The Export Button */}
           <a 
-         
-            href="https://post-silver-nobody-self.trycloudflare.com/export-csv/" 
+            href="https://post-silver-nobody-self.trycloudflare.com/export-history/" 
             download
             className="px-3 bg-white rounded-xl shadow-sm border border-gray-100 text-primary font-bold text-[10px] flex items-center justify-center hover:bg-green-50 transition-colors"
           >

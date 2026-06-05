@@ -45,7 +45,8 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const response = await fetch('https://post-silver-nobody-self.trycloudflare.com');
+        // FIXED: Added /dashboard-stats/ to the end of the URL!
+        const response = await fetch('https://post-silver-nobody-self.trycloudflare.com/dashboard-stats/');
         const data = await response.json();
         setStats(data);
       } catch (error) {
@@ -260,7 +261,7 @@ export default function Dashboard() {
         </div>
 
         {/* Section: Trend */}
-        {stats.trendData.length > 0 && (
+        {stats.trendData?.length > 0 && (
           <div style={{
             background: 'white',
             borderRadius: '20px',
@@ -392,7 +393,7 @@ export default function Dashboard() {
               Recent Activity
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {stats.recentActivity.length === 0 ? (
+              {!stats.recentActivity || stats.recentActivity.length === 0 ? (
                 <p style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'center', paddingTop: '12px' }}>
                   No activity yet
                 </p>
