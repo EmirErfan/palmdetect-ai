@@ -70,7 +70,7 @@ export default function LiveDetection() {
         } catch (error) {
           console.error("AI Server Error:", error);
         }
-      }, 'image/jpeg', 0.8);
+      }, 'image/jpeg', 0.4);
     }
   };
 
