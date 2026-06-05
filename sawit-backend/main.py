@@ -62,7 +62,7 @@ async def predict_image(save: bool = False, file: UploadFile = File(...), db: Se
     image_bytes = await file.read()
     image = Image.open(io.BytesIO(image_bytes))
 
-    results = model.predict(image, conf=0.4, verbose=False)
+    results = model.predict(image, conf=0.25, imgsz=640, verbose=False)
     
     detections = []
     

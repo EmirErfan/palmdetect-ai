@@ -22,8 +22,13 @@ export default function LiveDetection() {
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(t => t.stop());
         }
+        // FIXED: Forcing the phone to use a high-definition 1080p feed
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: cameraFacing }
+          video: { 
+            facingMode: cameraFacing,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
         });
         streamRef.current = stream;
         if (videoRef.current) videoRef.current.srcObject = stream;
