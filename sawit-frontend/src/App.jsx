@@ -27,9 +27,19 @@ export default function App() {
         <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-black/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="z-10 flex flex-col items-center animate-in fade-in zoom-in duration-1000">
-          {/* Animated App Icon */}
-          <div className="bg-white/10 p-5 rounded-3xl backdrop-blur-md border border-white/20 mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-            <span className="text-6xl drop-shadow-xl animate-bounce block">🌴</span>
+          
+          {/* LOGO REPLACING THE EMOJI */}
+          <div className="bg-white p-3 rounded-3xl mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.25)] w-28 h-28 flex items-center justify-center animate-bounce">
+            <img 
+              src="/logo.png" 
+              alt="PalmDetect Logo" 
+              className="w-full h-full object-contain rounded-xl"
+              onError={(e) => {
+                // If logo.png is missing, fallback to the emoji so it doesn't break
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = '<span class="text-6xl drop-shadow-xl block">🌴</span>';
+              }}
+            />
           </div>
           
           {/* App Title */}
