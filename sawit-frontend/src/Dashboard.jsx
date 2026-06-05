@@ -7,6 +7,7 @@ import {
   PieChart, Pie, Cell, LineChart, Line, XAxis, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { useState, useEffect } from 'react';
+import { API_URL } from './config';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -46,7 +47,7 @@ export default function Dashboard() {
     async function fetchStats() {
       try {
         // FIXED: Added /dashboard-stats/ to the end of the URL!
-        const response = await fetch('https://post-silver-nobody-self.trycloudflare.com/dashboard-stats/');
+        const response = await fetch(`${API_URL}/dashboard-stats/`);
         const data = await response.json();
         setStats(data);
       } catch (error) {

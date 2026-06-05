@@ -1,5 +1,6 @@
 import { Calendar, Search, SlidersHorizontal, ArrowUpRight, CheckCircle2, XCircle, Loader2, Leaf } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { API_URL } from './config';
 
 // Beautiful SVG placeholder for missing images
 function ImagePlaceholder({ isHarvest }) {
@@ -187,7 +188,7 @@ export default function History() {
   useEffect(() => {
     async function fetchHistory() {
       try {
-        const response = await fetch('https://post-silver-nobody-self.trycloudflare.com/history/');
+        const response = await fetch(`${API_URL}/history/`);
         const data = await response.json();
         setHistoryLogs(data);
       } catch (error) {
@@ -349,7 +350,7 @@ export default function History() {
           
           {/* The Export Button */}
           <a 
-            href="https://post-silver-nobody-self.trycloudflare.com/export-history/" 
+            href={`${API_URL}/export-history/`} 
             download
             className="px-3 bg-white rounded-xl shadow-sm border border-gray-100 text-primary font-bold text-[10px] flex items-center justify-center hover:bg-green-50 transition-colors"
           >

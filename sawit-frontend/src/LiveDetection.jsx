@@ -1,5 +1,6 @@
 import { Settings, Zap, RefreshCcw, Camera, Scan, ZapOff } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { API_URL } from './config';
 
 export default function LiveDetection() {
   const [threshold, setThreshold] = useState(40);
@@ -55,7 +56,7 @@ export default function LiveDetection() {
         
         try {
          
-          const response = await fetch(`https://post-silver-nobody-self.trycloudflare.com`, {
+          const response = await fetch(`${API_URL}/`, {
             method: 'POST',
             body: formData,
           });
