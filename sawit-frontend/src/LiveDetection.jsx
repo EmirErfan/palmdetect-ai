@@ -56,7 +56,7 @@ export default function LiveDetection() {
         
         try {
          
-          const response = await fetch(`${API_URL}/`, {
+          const response = await fetch(`${API_URL}/predict`, {
             method: 'POST',
             body: formData,
           });
