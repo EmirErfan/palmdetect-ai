@@ -1,4 +1,4 @@
-import { Settings, Zap, RefreshCcw, Camera, Scan, ZapOff } from 'lucide-react';
+import { Settings, Zap, RefreshCcw, Camera, Scan, ZapOff, Download } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { API_URL } from './config';
 
@@ -22,7 +22,6 @@ export default function LiveDetection() {
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(t => t.stop());
         }
-        // FIXED: Forcing the phone to use a high-definition 1080p feed
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { 
             facingMode: cameraFacing,
@@ -60,9 +59,9 @@ export default function LiveDetection() {
         formData.append('file', blob, 'frame.jpg');
         
         try {
-         
           const response = await fetch(`${API_URL}/predict`, {
             method: 'POST',
+            headers: { "Bypass-Tunnel-Reminder": "true" },
             body: formData,
           });
           const data = await response.json();
@@ -92,6 +91,62 @@ export default function LiveDetection() {
     setShowFlash(true);
     setTimeout(() => setShowFlash(false), 200);
     await processFrame(true);
+  };
+
+  // NEW: 5. Save to Gallery Function
+  const saveToGallery = () => {
+    if (!videoRef.current) return;
+    
+    // Flash effect for saving
+    setShowFlash(true);
+    setTimeout(() => setShowFlash(false), 150);
+
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+
+    // Draw the raw video frame
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Filter detections based on current threshold
+    const validDetections = detections.filter(d => d.confidence >= threshold);
+
+    // "Stamp" the bounding boxes directly onto the image pixels
+    validDetections.forEach(det => {
+      const [x_min, y_min, x_max, y_max] = det.bbox;
+      const isHarvest = det.class.toLowerCase().includes('harvest') && !det.class.toLowerCase().includes('not');
+      const color = isHarvest ? '#4ADE80' : '#FBBF24'; // Green or Yellow
+      const textColor = isHarvest ? '#052e16' : '#451a03';
+
+      // Draw the box
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 6;
+      ctx.strokeRect(x_min, y_min, x_max - x_min, y_max - y_min);
+
+      // Draw the label background
+      ctx.fillStyle = color;
+      const label = `${det.class.toUpperCase()} · ${det.confidence}%`;
+      ctx.font = 'bold 32px Arial'; // Large font for 1080p image
+      const textWidth = ctx.measureText(label).width;
+      ctx.fillRect(x_min - 3, y_min - 46, textWidth + 20, 46);
+
+      // Draw the label text
+      ctx.fillStyle = textColor;
+      ctx.fillText(label, x_min + 7, y_min - 12);
+    });
+
+    // Convert canvas to a downloadable JPEG file
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95); // 95% quality for saving
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = `PalmDetect-${new Date().getTime()}.jpg`;
+    
+    // Trigger the download to the phone's gallery
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const harvestCount = detections.filter(d =>
@@ -136,7 +191,7 @@ export default function LiveDetection() {
         }} />
       </div>
 
-      {/* Detection Boxes Overlay */}
+      {/* Detection Boxes Overlay (For the Live Screen) */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none' }}>
         {detections.filter(d => d.confidence >= threshold).map((det, index) => {
           if (!videoRef.current) return null;
@@ -398,23 +453,20 @@ export default function LiveDetection() {
         {/* Shutter Row */}
         <div className="flex justify-between items-center" style={{ padding: '0 32px' }}>
 
-          {/* Torch */}
+          {/* NEW: Download to Gallery Button */}
           <button
-            onClick={() => setTorchOn(!torchOn)}
+            onClick={saveToGallery}
             style={{
               width: 44, height: 44,
               borderRadius: '50%',
-              background: torchOn ? 'rgba(233, 196, 106, 0.20)' : 'rgba(255,255,255,0.10)',
-              border: torchOn ? '1px solid rgba(233, 196, 106, 0.40)' : '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(74, 222, 128, 0.15)',
+              border: '1px solid rgba(74, 222, 128, 0.30)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
+              transition: 'all 0.2s',
             }}
           >
-            {torchOn ? (
-              <Zap size={20} fill="rgba(233,196,106,0.9)" color="rgba(233,196,106,0.9)" strokeWidth={1.5} />
-            ) : (
-              <ZapOff size={20} color="rgba(255,255,255,0.6)" strokeWidth={1.5} />
-            )}
+            <Download size={20} color="#4ADE80" strokeWidth={2} />
           </button>
 
           {/* Main Shutter */}
@@ -434,17 +486,12 @@ export default function LiveDetection() {
               }}
             >
               <div style={{
-                width: 46,
-                height: 46,
+                width: 46, height: 46,
                 borderRadius: isScanning ? '8px' : '50%',
-                background: isScanning
-                  ? '#ef4444'
-                  : 'linear-gradient(135deg, #2D6A4F, #4ADE80)',
+                background: isScanning ? '#ef4444' : 'linear-gradient(135deg, #2D6A4F, #4ADE80)',
                 transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 transform: isScanning ? 'scale(0.6)' : 'scale(1)',
-                boxShadow: isScanning
-                  ? '0 4px 16px rgba(239, 68, 68, 0.50)'
-                  : '0 4px 16px rgba(74, 222, 128, 0.30)',
+                boxShadow: isScanning ? '0 4px 16px rgba(239, 68, 68, 0.50)' : '0 4px 16px rgba(74, 222, 128, 0.30)',
               }} />
             </button>
           ) : (
@@ -462,8 +509,7 @@ export default function LiveDetection() {
               }}
             >
               <div style={{
-                width: 52,
-                height: 52,
+                width: 52, height: 52,
                 borderRadius: '50%',
                 background: 'white',
                 boxShadow: '0 2px 10px rgba(0,0,0,0.20)',
