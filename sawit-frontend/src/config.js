@@ -1,1 +1,1 @@
-export const API_URL = " https://empower-john-feminism.ngrok-free.dev";u
+export const API_URL = " https://empower-john-feminism.ngrok-free.dev";
