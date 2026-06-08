@@ -12,11 +12,21 @@ export default function LiveDetection() {
   const [cameraFacing, setCameraFacing] = useState('environment');
   const [uploadedImageSrc, setUploadedImageSrc] = useState(null);
 
+  // Zoom States
+  const [zoom, setZoom] = useState(1);
+  const [isZoomSupported, setIsZoomSupported] = useState(false);
+  const [showZoomUI, setShowZoomUI] = useState(false);
+
   const videoRef = useRef(null);
   const imgRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const fileInputRef = useRef(null);
+  
+  // Zoom Refs
+  const pinchStartDistRef = useRef(null);
+  const currentZoomRef = useRef(1);
+  const zoomTimeoutRef = useRef(null);
 
   // 1. Start Camera
   useEffect(() => {
@@ -35,6 +45,20 @@ export default function LiveDetection() {
         });
         streamRef.current = stream;
         if (videoRef.current) videoRef.current.srcObject = stream;
+
+        // NEW: Check if phone hardware supports Zoom
+        const track = stream.getVideoTracks()[0];
+        if (track.getCapabilities) {
+          const capabilities = track.getCapabilities();
+          if (capabilities.zoom) {
+            setIsZoomSupported(true);
+            const initialZoom = capabilities.zoom.min || 1;
+            currentZoomRef.current = initialZoom;
+            setZoom(initialZoom);
+          } else {
+            setIsZoomSupported(false);
+          }
+        }
       } catch (err) {
         console.error("Error accessing camera:", err);
       }
@@ -46,6 +70,63 @@ export default function LiveDetection() {
       }
     };
   }, [cameraFacing, cameraMode]);
+
+  // NEW: Pinch-to-Zoom Math & Handlers
+  const getPinchDistance = (touches) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 2 && isZoomSupported && cameraMode !== 'gallery') {
+      pinchStartDistRef.current = getPinchDistance(e.touches);
+    }
+  };
+
+  const handleTouchMove = async (e) => {
+    if (e.touches.length === 2 && isZoomSupported && pinchStartDistRef.current && cameraMode !== 'gallery') {
+      const currentDist = getPinchDistance(e.touches);
+      const scale = currentDist / pinchStartDistRef.current;
+      pinchStartDistRef.current = currentDist; // Update for next frame for smooth tracking
+
+      if (streamRef.current) {
+        const track = streamRef.current.getVideoTracks()[0];
+        const capabilities = track.getCapabilities();
+        
+        if (capabilities.zoom) {
+          const min = capabilities.zoom.min || 1;
+          const max = capabilities.zoom.max || 5; 
+          
+          let newZoom = currentZoomRef.current * scale;
+          newZoom = Math.max(min, Math.min(newZoom, max)); // Clamp between min and max hardware limits
+          
+          if (newZoom !== currentZoomRef.current) {
+            currentZoomRef.current = newZoom;
+            setZoom(newZoom);
+            
+            // Show the zoom pill UI
+            setShowZoomUI(true);
+            if (zoomTimeoutRef.current) clearTimeout(zoomTimeoutRef.current);
+            zoomTimeoutRef.current = setTimeout(() => setShowZoomUI(false), 1500);
+
+            // Apply physical lens zoom
+            try {
+              await track.applyConstraints({ advanced: [{ zoom: newZoom }] });
+            } catch (err) {
+              console.error("Hardware Zoom Failed:", err);
+            }
+          }
+        }
+      }
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (e.touches.length < 2) {
+      pinchStartDistRef.current = null;
+    }
+  };
 
   // 2. Process Live/Photo Frame
   const processFrame = async () => {
@@ -179,12 +260,30 @@ export default function LiveDetection() {
 
       <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
 
+      {/* Zoom UI Indicator */}
+      {showZoomUI && isZoomSupported && (
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)',
+          color: 'white', padding: '12px 24px', borderRadius: '30px',
+          fontSize: '20px', fontWeight: '800', zIndex: 100, pointerEvents: 'none',
+          transition: 'opacity 0.3s ease', boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+        }}>
+          {zoom.toFixed(1)}x
+        </div>
+      )}
+
       {showFlash && (
         <div style={{ position: 'absolute', inset: 0, background: 'white', zIndex: 100, opacity: 0.9, transition: 'opacity 0.2s ease', pointerEvents: 'none' }} />
       )}
 
-      {/* Media Feed */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+      {/* Media Feed (With Touch Actions for Zoom) */}
+      <div 
+        style={{ position: 'absolute', inset: 0, zIndex: 0, touchAction: 'none' }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {cameraMode === 'gallery' && uploadedImageSrc ? (
           <img ref={imgRef} src={uploadedImageSrc} alt="Uploaded" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
@@ -230,42 +329,17 @@ export default function LiveDetection() {
         })}
       </div>
 
-      {/* Top Bar with NEW LOGO SUPPORT */}
+      {/* Top Bar with LOGO */}
       <div style={{ position: 'absolute', top: 0, width: '100%', zIndex: 20, padding: '48px 16px 16px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, transparent 100%)' }}>
         <div className="flex justify-between items-center">
-          
-          {/* LOGO AND TITLE AREA */}
           <div className="flex items-center gap-3">
-            
-            {/* THIS IS YOUR LOGO IMAGE */}
-            <div style={{
-              width: 38, height: 38, 
-              background: 'white', // White background in case your logo is transparent and dark
-              borderRadius: '10px',
-              padding: '2px',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
-            }}>
-              <img 
-                src="/logo.png" 
-                alt="Logo" 
-                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }} 
-                onError={(e) => {
-                  // Fallback if logo.png is missing: hides the broken image icon
-                  e.target.style.display = 'none';
-                  e.target.parentElement.style.display = 'none';
-                }}
-              />
+            <div style={{ width: 38, height: 38, background: 'white', borderRadius: '10px', padding: '2px', boxShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>
+              <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }} onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.style.display = 'none'; }} />
             </div>
-
             <div>
-              <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', fontWeight: 400, color: 'white', lineHeight: 1.1, letterSpacing: '-0.3px' }}>
-                Live Detection
-              </h1>
+              <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', fontWeight: 400, color: 'white', lineHeight: 1.1, letterSpacing: '-0.3px' }}>Live Detection</h1>
               <div className="flex items-center gap-1.5 mt-1">
-                <div style={{
-                  width: 6, height: 6, borderRadius: '50%', background: isScanning && cameraMode === 'live' ? '#4ADE80' : 'rgba(255,255,255,0.4)',
-                  boxShadow: isScanning && cameraMode === 'live' ? '0 0 8px #4ADE80' : 'none', animation: isScanning && cameraMode === 'live' ? 'pulse 2s ease infinite' : 'none',
-                }} />
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: isScanning && cameraMode === 'live' ? '#4ADE80' : 'rgba(255,255,255,0.4)', boxShadow: isScanning && cameraMode === 'live' ? '0 0 8px #4ADE80' : 'none', animation: isScanning && cameraMode === 'live' ? 'pulse 2s ease infinite' : 'none' }} />
                 <span style={{ fontSize: '10px', fontWeight: 500, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.3px' }}>
                   {cameraMode === 'gallery' ? 'Gallery Image' : cameraMode === 'photo' ? 'Photo Mode' : isScanning ? 'Scanning Active' : 'Scanner Paused'}
                 </span>
