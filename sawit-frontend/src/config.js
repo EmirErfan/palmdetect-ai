@@ -1,1 +1,1 @@
-export const API_URL = " https://empower-john-feminism.ngrok-free.dev";
+export const API_URL = " http://178.128.86.23";
