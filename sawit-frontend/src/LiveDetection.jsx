@@ -13,6 +13,14 @@ export default function LiveDetection() {
   const [cameraFacing, setCameraFacing] = useState('environment');
   const [showFlash, setShowFlash] = useState(false);
   
+  // --- NEW ZOOM STATES ---
+  const [zoom, setZoom] = useState(1);
+  const [minZoom, setMinZoom] = useState(1);
+  const [maxZoom, setMaxZoom] = useState(1);
+  const [videoTrack, setVideoTrack] = useState(null);
+  const [zoomSupported, setZoomSupported] = useState(false);
+  // -----------------------
+
   // Result States
   const [staticImageSrc, setStaticImageSrc] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -42,12 +50,28 @@ export default function LiveDetection() {
         });
         streamRef.current = stream;
         if (videoRef.current) videoRef.current.srcObject = stream;
+
+        // --- NEW ZOOM DETECTION LOGIC ---
+        const track = stream.getVideoTracks()[0];
+        setVideoTrack(track);
+
+        // Check if the phone camera hardware supports zoom
+        const capabilities = track.getCapabilities();
+        if (capabilities.zoom) {
+          setZoomSupported(true);
+          setMinZoom(capabilities.zoom.min);
+          setMaxZoom(capabilities.zoom.max);
+          setZoom(capabilities.zoom.min); // Reset to minimum zoom
+        } else {
+          setZoomSupported(false);
+        }
+        // --------------------------------
+
       } catch (err) {
         console.error("Error accessing camera:", err);
       }
     }
-    // We start the camera immediately and keep it running in the background 
-    // even when looking at results, so returning is instant!
+    
     startCamera();
     return () => {
       if (streamRef.current) {
@@ -101,11 +125,9 @@ export default function LiveDetection() {
   const takePicture = () => {
     if (!videoRef.current || !canvasRef.current) return;
     
-    // Flash effect
     setShowFlash(true);
     setTimeout(() => setShowFlash(false), 200);
 
-    // Stop live scanning if it was running
     setIsScanning(false);
     
     const video = videoRef.current;
@@ -115,14 +137,12 @@ export default function LiveDetection() {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Get image URL to show on screen instantly
     const imageUrl = canvas.toDataURL('image/jpeg', 0.9);
     setStaticImageSrc(imageUrl);
     setViewMode('result');
     setIsAnalyzing(true);
     setDetections([]);
 
-    // Send to AI
     canvas.toBlob(async (blob) => {
       const formData = new FormData();
       formData.append('file', blob, 'capture.jpg');
@@ -166,7 +186,7 @@ export default function LiveDetection() {
   };
 
   // ==========================================
-  // 5. ACTION: SAVE TO GALLERY (Result Mode Only)
+  // 5. ACTION: SAVE TO GALLERY (Result Mode)
   // ==========================================
   const saveToGallery = () => {
     if (!resultImgRef.current) return;
@@ -212,13 +232,22 @@ export default function LiveDetection() {
     document.body.removeChild(link);
   };
 
-  // Helper variables for Stats
+  // --- NEW ZOOM CONTROLLER FUNCTION ---
+  const handleZoomChange = (e) => {
+    const newZoom = Number(e.target.value);
+    setZoom(newZoom);
+    
+    if (videoTrack) {
+      videoTrack.applyConstraints({
+        advanced: [{ zoom: newZoom }]
+      });
+    }
+  };
+  // ------------------------------------
+
   const harvestCount = detections.filter(d => d.confidence >= threshold && d.class.toLowerCase().includes('harvest') && !d.class.toLowerCase().includes('not')).length;
   const notHarvestCount = detections.filter(d => d.confidence >= threshold && d.class.toLowerCase().includes('not')).length;
 
-  // ==========================================
-  // RENDER UI
-  // ==========================================
   return (
     <div className="flex flex-col h-full overflow-hidden relative" style={{ background: '#0A0F0C' }}>
 
@@ -289,9 +318,28 @@ export default function LiveDetection() {
         {/* Bottom Controls - Live */}
         <div style={{ position: 'absolute', bottom: 0, width: '100%', zIndex: 20, padding: '0 0 32px 0', background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)' }}>
           
+          {/* --- NEW ZOOM UI --- */}
+          {zoomSupported && (
+            <div className="flex justify-between items-center px-8 mb-6">
+              <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', fontWeight: 600, width: '20px' }}>{minZoom}x</span>
+              <div style={{ flex: 1, margin: '0 12px', position: 'relative' }}>
+                <input 
+                  type="range" 
+                  min={minZoom} 
+                  max={maxZoom} 
+                  step="0.1" 
+                  value={zoom} 
+                  onChange={handleZoomChange} 
+                  style={{ width: '100%', height: '4px', appearance: 'none', WebkitAppearance: 'none', background: 'rgba(255,255,255,0.2)', borderRadius: '2px', outline: 'none' }}
+                />
+              </div>
+              <span style={{ color: 'white', fontSize: '12px', fontWeight: 800, width: '24px', textAlign: 'right' }}>{zoom}x</span>
+            </div>
+          )}
+          {/* -------------------- */}
+
           {/* Action Row */}
           <div className="flex justify-evenly items-center px-6">
-            {/* Gallery Upload Button */}
             <div className="flex flex-col items-center gap-2">
               <button onClick={() => fileInputRef.current.click()} style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <ImageIcon size={22} color="white" strokeWidth={1.5} />
@@ -299,7 +347,6 @@ export default function LiveDetection() {
               <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Gallery</span>
             </div>
 
-            {/* Main Shutter (Snap Picture) */}
             <div className="flex flex-col items-center gap-2">
               <button onClick={takePicture} style={{ position: 'relative', width: 76, height: 76, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '3px solid rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s ease' }}>
                 <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'white', boxShadow: '0 2px 10px rgba(0,0,0,0.20)' }} />
@@ -307,7 +354,6 @@ export default function LiveDetection() {
               <span style={{ fontSize: '10px', color: 'white', fontWeight: 700 }}>Snap Photo</span>
             </div>
 
-            {/* Flip Camera */}
             <div className="flex flex-col items-center gap-2">
               <button onClick={() => setCameraFacing(f => f === 'environment' ? 'user' : 'environment')} style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <RefreshCcw size={22} color="white" strokeWidth={1.5} />
