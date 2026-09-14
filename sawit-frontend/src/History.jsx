@@ -58,11 +58,11 @@ function LogCard({ log, idx, onClick }) {
         <div className="flex items-center gap-1.5" style={{ marginBottom: '5px' }}>
           {isHarvest ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '9px', fontWeight: 800, color: '#1B4332', background: 'rgba(45, 106, 79, 0.10)', padding: '3px 8px', borderRadius: '20px', letterSpacing: '0.3px', textTransform: 'uppercase', border: '1px solid rgba(45, 106, 79, 0.12)' }}>
-              <CheckCircle2 size={9} /> Harvest
+              <CheckCircle2 size={9} /> Dituai
             </span>
           ) : (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '9px', fontWeight: 800, color: '#92400e', background: 'rgba(212, 168, 83, 0.12)', padding: '3px 8px', borderRadius: '20px', letterSpacing: '0.3px', textTransform: 'uppercase', border: '1px solid rgba(212, 168, 83, 0.18)' }}>
-              <XCircle size={9} /> Not Ready
+              <XCircle size={9} /> Belum Sedia
             </span>
           )}
           <span style={{ fontSize: '9px', fontWeight: 800, color: '#1d4ed8', background: 'rgba(29, 78, 216, 0.08)', padding: '3px 7px', borderRadius: '20px', letterSpacing: '0.2px', border: '1px solid rgba(29, 78, 216, 0.10)' }}>
@@ -157,10 +157,10 @@ export default function History() {
             </div>
             <div>
               <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'white', letterSpacing: '-0.4px', lineHeight: 1.1 }}>
-                Detection Logs
+                Log Pengesanan
               </h2>
               <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.65)', marginTop: '3px', fontWeight: 500 }}>
-                {safeLogs.length} total records
+                {safeLogs.length} rekod
               </p>
             </div>
           </div>
@@ -173,9 +173,9 @@ export default function History() {
         {/* Quick stats row */}
         <div className="flex gap-2" style={{ marginTop: '16px' }}>
           {[
-            { label: 'All Records', value: safeLogs.length, mode: 'all', color: 'rgba(255,255,255,0.80)' },
-            { label: 'Harvest', value: harvestTotal, mode: 'harvest', color: '#4ADE80' },
-            { label: 'Not Ready', value: notTotal, mode: 'not', color: '#FBBF24' },
+            { label: 'Semua Rekod', value: safeLogs.length, mode: 'all', color: 'rgba(255,255,255,0.80)' },
+            { label: 'Dituai', value: harvestTotal, mode: 'harvest', color: '#4ADE80' },
+            { label: 'Belum Sedia', value: notTotal, mode: 'not', color: '#FBBF24' },
           ].map(({ label, value, mode, color }) => (
             <button
               key={mode} onClick={() => setFilterMode(mode)}
@@ -193,7 +193,7 @@ export default function History() {
         <div className="flex gap-2 mb-4">
           <div className="relative flex-1">
             <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
-            <input type="text" placeholder="Search by ID or status…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+            <input type="text" placeholder="Cari ID atau status…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
               style={{ width: '100%', paddingLeft: '36px', paddingRight: '14px', paddingTop: '11px', paddingBottom: '11px', borderRadius: '14px', border: '1px solid rgba(27, 67, 50, 0.10)', background: 'white', fontSize: '12px', color: '#374151', fontWeight: 400, outline: 'none', boxShadow: '0 2px 12px rgba(27, 67, 50, 0.05)', boxSizing: 'border-box', transition: 'border-color 0.2s ease, box-shadow 0.2s ease' }}
               onFocus={e => { e.target.style.borderColor = 'rgba(27, 67, 50, 0.30)'; e.target.style.boxShadow = '0 4px 16px rgba(27, 67, 50, 0.10)'; }}
               onBlur={e => { e.target.style.borderColor = 'rgba(27, 67, 50, 0.10)'; e.target.style.boxShadow = '0 2px 12px rgba(27, 67, 50, 0.05)'; }}
@@ -201,7 +201,7 @@ export default function History() {
           </div>
           
           <a href={`${API_URL}/export-history/`} download className="px-3 bg-white rounded-xl shadow-sm border border-gray-100 text-primary font-bold text-[10px] flex items-center justify-center hover:bg-green-50 transition-colors">
-            EXPORT CSV
+            EKSPORT CSV
           </a>
           <button className="p-2 bg-white rounded-xl shadow-sm border border-gray-100 text-gray-600 flex items-center justify-center">
             <SlidersHorizontal size={16} />
@@ -218,8 +218,8 @@ export default function History() {
             <div style={{ width: 64, height: 64, borderRadius: '20px', background: 'rgba(27, 67, 50, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
               <Leaf size={28} style={{ color: '#6B7280' }} strokeWidth={1.5} />
             </div>
-            <p style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>No records found</p>
-            <p style={{ fontSize: '11px', color: '#9CA3AF' }}>{searchQuery ? 'Try a different search term' : 'Start scanning to build your log history'}</p>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Tiada rekod ditemui</p>
+            <p style={{ fontSize: '11px', color: '#9CA3AF' }}>{searchQuery ? 'Cuba cari lagi' : 'Mula imbas untuk bina sejarah'}</p>
           </div>
         ) : (
           filtered.map((log, idx) => ( <LogCard key={log.id} log={log} idx={idx} onClick={() => setSelectedLog(log)} /> ))
@@ -289,11 +289,11 @@ export default function History() {
             <div style={{ padding: '20px' }}>
               <div className="flex gap-4 mb-4">
                 <div style={{ flex: 1, background: '#F0FDF4', padding: '12px', borderRadius: '16px', border: '1px solid #DCFCE7' }}>
-                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Harvest</p>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dituai</p>
                   <p style={{ fontSize: '24px', fontWeight: 800, color: '#15803D' }}>{selectedLog.harvest_count || 0}</p>
                 </div>
                 <div style={{ flex: 1, background: '#FEF9C3', padding: '12px', borderRadius: '16px', border: '1px solid #FEF08A' }}>
-                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#854D0E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Not Ready</p>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#854D0E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Belum Sedia</p>
                   <p style={{ fontSize: '24px', fontWeight: 800, color: '#A16207' }}>{selectedLog.not_harvest_count || 0}</p>
                 </div>
               </div>
@@ -306,7 +306,7 @@ export default function History() {
                 >
                   <MapPin size={18} color="#4B5563" />
                   <div>
-                    <p style={{ fontSize: '12px', fontWeight: 600 }}>View GPS Location</p>
+                    <p style={{ fontSize: '12px', fontWeight: 600 }}>Lihat Lokasi GPS</p>
                     <p style={{ fontSize: '10px', color: '#6B7280' }}>{selectedLog.latitude.toFixed(5)}, {selectedLog.longitude.toFixed(5)}</p>
                   </div>
                 </a>

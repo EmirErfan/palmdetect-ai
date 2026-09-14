@@ -76,7 +76,7 @@ export default function App() {
           className={`flex flex-col items-center gap-1 transition-all duration-300 ${activeTab === 'dashboard' ? 'text-[#2D6A4F] scale-110' : 'text-gray-400 hover:text-gray-500'}`}
         >
           <Home size={24} strokeWidth={activeTab === 'dashboard' ? 2.5 : 2} />
-          <span className="text-[10px] font-bold">Dashboard</span>
+          <span className="text-[10px] font-bold">Papan Pemuka</span>
         </button>
 
         {/* Center Live Detection Tab */}
@@ -88,7 +88,7 @@ export default function App() {
             <Focus size={28} className={activeTab === 'camera' ? 'text-white' : 'text-[#2D6A4F]'} strokeWidth={2.5} />
           </div>
           <span className={`text-[10px] font-bold mt-6 transition-colors duration-300 ${activeTab === 'camera' ? 'text-[#2D6A4F]' : 'text-gray-400'}`}>
-            Live Scanner
+            Pengimbas
           </span>
         </button>
 
@@ -98,7 +98,7 @@ export default function App() {
           className={`flex flex-col items-center gap-1 transition-all duration-300 ${activeTab === 'history' ? 'text-[#2D6A4F] scale-110' : 'text-gray-400 hover:text-gray-500'}`}
         >
           <Clock size={24} strokeWidth={activeTab === 'history' ? 2.5 : 2} />
-          <span className="text-[10px] font-bold">History</span>
+          <span className="text-[10px] font-bold">Sejarah</span>
         </button>
 
       </div>
