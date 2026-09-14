@@ -1,12 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Home, Focus, Clock } from 'lucide-react';
+import { Home, Focus, Clock, Globe } from 'lucide-react';
 import Dashboard from './Dashboard';
 import LiveDetection from './LiveDetection';
 import History from './History';
+import { translations } from './translations';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showSplash, setShowSplash] = useState(true);
+  const [language, setLanguage] = useState('en');
+  
+  const t = translations[language];
+
+  const toggleLanguage = () => {
+    setLanguage(prev => prev === 'en' ? 'ms' : 'en');
+  };
 
   // Timer to hide the splash screen after 2.5 seconds
   useEffect(() => {
@@ -44,10 +52,10 @@ export default function App() {
           
           {/* App Title */}
           <h1 className="text-3xl font-bold tracking-tight text-white mb-1 drop-shadow-md" style={{ fontFamily: "'DM Serif Display', serif" }}>
-            PalmDetect AI
+            {t.appTitle}
           </h1>
           <p className="text-[11px] font-medium text-green-100 tracking-widest uppercase opacity-80">
-            Precision Palm Detection
+            {t.appSubtitle}
           </p>
         </div>
       </div>
@@ -60,11 +68,20 @@ export default function App() {
   return (
     <div className="max-w-md mx-auto relative h-[100dvh] bg-[#F8F9FA] overflow-hidden text-gray-800 flex flex-col shadow-2xl">
       
+      {/* Language Toggle Button */}
+      <button 
+        onClick={toggleLanguage}
+        className="absolute top-4 right-4 z-50 bg-white/80 backdrop-blur-md shadow-md rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs font-bold text-[#2D6A4F] border border-gray-100 hover:bg-white transition-colors"
+      >
+        <Globe size={14} />
+        {language === 'en' ? 'MS' : 'EN'}
+      </button>
+
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto relative w-full hide-scrollbar">
-        {activeTab === 'dashboard' && <Dashboard />}
-        {activeTab === 'camera' && <LiveDetection />}
-        {activeTab === 'history' && <History />}
+        {activeTab === 'dashboard' && <Dashboard language={language} />}
+        {activeTab === 'camera' && <LiveDetection language={language} />}
+        {activeTab === 'history' && <History language={language} />}
       </div>
 
       {/* Fixed Bottom Navigation */}
@@ -76,7 +93,7 @@ export default function App() {
           className={`flex flex-col items-center gap-1 transition-all duration-300 ${activeTab === 'dashboard' ? 'text-[#2D6A4F] scale-110' : 'text-gray-400 hover:text-gray-500'}`}
         >
           <Home size={24} strokeWidth={activeTab === 'dashboard' ? 2.5 : 2} />
-          <span className="text-[10px] font-bold">Papan Pemuka</span>
+          <span className="text-[10px] font-bold">{t.navDashboard}</span>
         </button>
 
         {/* Center Live Detection Tab */}
@@ -88,7 +105,7 @@ export default function App() {
             <Focus size={28} className={activeTab === 'camera' ? 'text-white' : 'text-[#2D6A4F]'} strokeWidth={2.5} />
           </div>
           <span className={`text-[10px] font-bold mt-6 transition-colors duration-300 ${activeTab === 'camera' ? 'text-[#2D6A4F]' : 'text-gray-400'}`}>
-            Pengimbas
+            {t.navScanner}
           </span>
         </button>
 
@@ -98,7 +115,7 @@ export default function App() {
           className={`flex flex-col items-center gap-1 transition-all duration-300 ${activeTab === 'history' ? 'text-[#2D6A4F] scale-110' : 'text-gray-400 hover:text-gray-500'}`}
         >
           <Clock size={24} strokeWidth={activeTab === 'history' ? 2.5 : 2} />
-          <span className="text-[10px] font-bold">Sejarah</span>
+          <span className="text-[10px] font-bold">{t.navHistory}</span>
         </button>
 
       </div>
