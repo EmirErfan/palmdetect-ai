@@ -1,5 +1,5 @@
 import {
-  Bell, ClipboardCheck, WheatOff, Activity,
+  ClipboardCheck, WheatOff, Activity,
   Camera, Cpu, Server, HardDrive, CheckCircle2, XCircle, Loader2,
   TrendingUp, Leaf
 } from 'lucide-react';
@@ -134,10 +134,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <button style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '9px', position: 'relative' }}>
-            <Bell size={18} color="white" strokeWidth={1.8} />
-            <span style={{ position: 'absolute', top: 8, right: 8, width: 7, height: 7, borderRadius: '50%', background: '#E9C46A', border: '1.5px solid rgba(27,67,50,0.5)' }} />
-          </button>
+
         </div>
 
         {/* Top KPI Bar */}
