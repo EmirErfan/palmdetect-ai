@@ -100,7 +100,7 @@ export default function LiveDetection() {
             const formData = new FormData();
             formData.append('file', blob, 'frame.jpg');
             try {
-              const response = await fetch(`${API_URL}/predict`, {
+              const response = await fetch(`${API_URL}/predict/`, {
                 method: 'POST',
                 headers: { "Bypass-Tunnel-Reminder": "true" },
                 body: formData,
@@ -171,7 +171,7 @@ export default function LiveDetection() {
 
   const sendToAI = async (formData) => {
     try {
-      const response = await fetch(`${API_URL}/predict`, {
+      const response = await fetch(`${API_URL}/predict/`, {
         method: 'POST',
         headers: { "Bypass-Tunnel-Reminder": "true" },
         body: formData,
