@@ -227,54 +227,27 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Section: System + Recent Activity */}
-        <div className="grid grid-cols-2 gap-3">
-          <div style={{ background: 'white', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 16px rgba(27, 67, 50, 0.06), 0 1px 4px rgba(27, 67, 50, 0.04)', border: '1px solid rgba(27, 67, 50, 0.06)' }}>
-            <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.1px' }}>System Status</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {[
-                { icon: Camera, label: 'Camera', status: 'Online', ok: true },
-                { icon: Cpu, label: 'AI Model', status: 'Active', ok: true },
-                { icon: Server, label: 'Server', status: 'Online', ok: true },
-              ].map(({ icon: Icon, label, status, ok }, i) => (
-                <div key={i} className="flex justify-between items-center">
-                  <div className="flex items-center gap-1.5"><Icon size={12} style={{ color: 'var(--text-muted)' }} /><span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 500 }}>{label}</span></div>
-                  <span style={{ fontSize: '9px', fontWeight: 700, color: ok ? '#2D6A4F' : '#C0392B', background: ok ? 'rgba(45, 106, 79, 0.08)' : 'rgba(192, 57, 43, 0.08)', padding: '2px 7px', borderRadius: '20px', letterSpacing: '0.2px' }}>{status}</span>
-                </div>
-              ))}
-              <div>
-                <div className="flex justify-between items-center" style={{ marginBottom: '5px' }}>
-                  <div className="flex items-center gap-1.5"><HardDrive size={12} style={{ color: 'var(--text-muted)' }} /><span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 500 }}>Storage</span></div>
-                  <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text-primary)' }}>67%</span>
-                </div>
-                <div style={{ height: 4, background: 'rgba(27, 67, 50, 0.08)', borderRadius: '2px', overflow: 'hidden' }}>
-                  <div style={{ width: '67%', height: '100%', background: 'linear-gradient(90deg, #2D6A4F, #40916C)', borderRadius: '2px' }} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ background: 'white', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 16px rgba(27, 67, 50, 0.06), 0 1px 4px rgba(27, 67, 50, 0.04)', border: '1px solid rgba(27, 67, 50, 0.06)' }}>
-            <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.1px' }}>Recent Activity</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {!stats.recentActivity || stats.recentActivity.length === 0 ? (
-                <p style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'center', paddingTop: '12px' }}>No activity yet</p>
-              ) : (
-                stats.recentActivity.map((activity, idx) => (
-                  <div key={idx} className="flex justify-between items-start">
-                    <div className="flex items-start gap-1.5">
-                      {activity.isHarvest ? (
-                        <div style={{ width: 16, height: 16, borderRadius: '5px', background: 'rgba(45, 106, 79, 0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}><CheckCircle2 size={10} style={{ color: '#2D6A4F' }} /></div>
-                      ) : (
-                        <div style={{ width: 16, height: 16, borderRadius: '5px', background: 'rgba(212, 168, 83, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}><XCircle size={10} style={{ color: '#D4A853' }} /></div>
-                      )}
-                      <span style={{ fontSize: '10px', color: 'var(--text-primary)', fontWeight: 600, maxWidth: '60px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={activity.status}>{activity.status}</span>
-                    </div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', flexShrink: 0 }}>{activity.time}</span>
+        {/* Section: Recent Activity */}
+        <div style={{ background: 'white', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 16px rgba(27, 67, 50, 0.06), 0 1px 4px rgba(27, 67, 50, 0.04)', border: '1px solid rgba(27, 67, 50, 0.06)' }}>
+          <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.1px' }}>Recent Activity</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {!stats.recentActivity || stats.recentActivity.length === 0 ? (
+              <p style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'center', paddingTop: '12px' }}>No activity yet</p>
+            ) : (
+              stats.recentActivity.map((activity, idx) => (
+                <div key={idx} className="flex justify-between items-start">
+                  <div className="flex items-start gap-1.5">
+                    {activity.isHarvest ? (
+                      <div style={{ width: 16, height: 16, borderRadius: '5px', background: 'rgba(45, 106, 79, 0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}><CheckCircle2 size={10} style={{ color: '#2D6A4F' }} /></div>
+                    ) : (
+                      <div style={{ width: 16, height: 16, borderRadius: '5px', background: 'rgba(212, 168, 83, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}><XCircle size={10} style={{ color: '#D4A853' }} /></div>
+                    )}
+                    <span style={{ fontSize: '10px', color: 'var(--text-primary)', fontWeight: 600, maxWidth: '60px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={activity.status}>{activity.status}</span>
                   </div>
-                ))
-              )}
-            </div>
+                  <span style={{ fontSize: '9px', color: 'var(--text-muted)', flexShrink: 0 }}>{activity.time}</span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
