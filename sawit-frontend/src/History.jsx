@@ -1,4 +1,4 @@
-import { Calendar, Search, SlidersHorizontal, ArrowUpRight, CheckCircle2, XCircle, Loader2, Leaf } from 'lucide-react';
+import { Calendar, Search, SlidersHorizontal, ArrowUpRight, CheckCircle2, XCircle, Loader2, Leaf, X, MapPin } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { API_URL } from './config';
 
@@ -29,13 +29,14 @@ function LogSkeleton() {
   );
 }
 
-function LogCard({ log, idx }) {
+function LogCard({ log, idx, onClick }) {
   const statusStr = log.status || '';
   const isHarvest = statusStr.toLowerCase().includes('harvest') && !statusStr.toLowerCase().includes('not');
   const [imgError, setImgError] = useState(false);
 
   return (
     <div
+      onClick={onClick}
       style={{
         background: 'white', padding: '12px', borderRadius: '18px', border: '1px solid rgba(27, 67, 50, 0.06)', boxShadow: '0 2px 12px rgba(27, 67, 50, 0.04)',
         display: 'flex', alignItems: 'center', gap: '12px', transition: 'transform 0.15s ease, box-shadow 0.15s ease', cursor: 'pointer', animationDelay: `${idx * 40}ms`,
@@ -84,6 +85,7 @@ export default function History() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState('all');
+  const [selectedLog, setSelectedLog] = useState(null);
 
   useEffect(() => {
     async function fetchHistory() {
@@ -220,9 +222,100 @@ export default function History() {
             <p style={{ fontSize: '11px', color: '#9CA3AF' }}>{searchQuery ? 'Try a different search term' : 'Start scanning to build your log history'}</p>
           </div>
         ) : (
-          filtered.map((log, idx) => ( <LogCard key={log.id} log={log} idx={idx} /> ))
+          filtered.map((log, idx) => ( <LogCard key={log.id} log={log} idx={idx} onClick={() => setSelectedLog(log)} /> ))
         )}
       </div>
+
+      {/* Detail Modal */}
+      {selectedLog && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedLog(null)} />
+          
+          <div style={{ position: 'relative', background: 'white', width: '100%', maxWidth: '400px', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            
+            {/* Header */}
+            <div className="flex justify-between items-center" style={{ padding: '16px 20px', borderBottom: '1px solid #F3F4F6' }}>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>{selectedLog.log_id}</h3>
+                <p style={{ fontSize: '11px', color: '#6B7280' }}>{selectedLog.date} at {selectedLog.time}</p>
+              </div>
+              <button onClick={() => setSelectedLog(null)} style={{ background: '#F3F4F6', border: 'none', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <X size={16} color="#4B5563" strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {/* Image Container */}
+            <div style={{ position: 'relative', width: '100%', height: '350px', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {(() => {
+                const imgSrc = selectedLog.imgUrl?.startsWith('/') ? `${API_URL}${selectedLog.imgUrl}` : selectedLog.imgUrl;
+                let boxData = null;
+                try {
+                  if (selectedLog.boxes_json) boxData = JSON.parse(selectedLog.boxes_json);
+                } catch(e) {}
+
+                if (!boxData || !boxData.width) {
+                  return <img src={imgSrc} alt="Scan" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />;
+                }
+
+                return (
+                  <div style={{ position: 'relative', maxWidth: '100%', maxHeight: '100%', aspectRatio: `${boxData.width}/${boxData.height}` }}>
+                    <img src={imgSrc} alt="Scan" style={{ width: '100%', height: '100%', display: 'block' }} />
+                    {boxData.boxes.map((box, i) => {
+                      const [x1, y1, x2, y2] = box.bbox;
+                      const isHarv = box.class.toLowerCase().includes('harvest') && !box.class.toLowerCase().includes('not');
+                      const color = isHarv ? '#4ADE80' : '#FBBF24';
+                      return (
+                        <div key={i} style={{
+                          position: 'absolute',
+                          left: `${(x1 / boxData.width) * 100}%`,
+                          top: `${(y1 / boxData.height) * 100}%`,
+                          width: `${((x2 - x1) / boxData.width) * 100}%`,
+                          height: `${((y2 - y1) / boxData.height) * 100}%`,
+                          border: `2px solid ${color}`,
+                          boxShadow: `0 0 0 1px rgba(0,0,0,0.2) inset`,
+                        }}>
+                          <span style={{ position: 'absolute', top: -14, left: -2, background: color, color: '#000', fontSize: '8px', fontWeight: 800, padding: '1px 4px', borderRadius: '2px', whiteSpace: 'nowrap' }}>
+                            {Math.round(box.confidence)}%
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Details */}
+            <div style={{ padding: '20px' }}>
+              <div className="flex gap-4 mb-4">
+                <div style={{ flex: 1, background: '#F0FDF4', padding: '12px', borderRadius: '16px', border: '1px solid #DCFCE7' }}>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Harvest</p>
+                  <p style={{ fontSize: '24px', fontWeight: 800, color: '#15803D' }}>{selectedLog.harvest_count || 0}</p>
+                </div>
+                <div style={{ flex: 1, background: '#FEF9C3', padding: '12px', borderRadius: '16px', border: '1px solid #FEF08A' }}>
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: '#854D0E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Not Ready</p>
+                  <p style={{ fontSize: '24px', fontWeight: 800, color: '#A16207' }}>{selectedLog.not_harvest_count || 0}</p>
+                </div>
+              </div>
+
+              {selectedLog.latitude && selectedLog.longitude && (
+                <a 
+                  href={`https://maps.google.com/?q=${selectedLog.latitude},${selectedLog.longitude}`} 
+                  target="_blank" rel="noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#F3F4F6', padding: '12px 16px', borderRadius: '12px', textDecoration: 'none', color: '#374151' }}
+                >
+                  <MapPin size={18} color="#4B5563" />
+                  <div>
+                    <p style={{ fontSize: '12px', fontWeight: 600 }}>View GPS Location</p>
+                    <p style={{ fontSize: '10px', color: '#6B7280' }}>{selectedLog.latitude.toFixed(5)}, {selectedLog.longitude.toFixed(5)}</p>
+                  </div>
+                </a>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }

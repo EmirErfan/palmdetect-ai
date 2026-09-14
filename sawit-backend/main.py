@@ -1,9 +1,11 @@
-from fastapi import FastAPI, File, UploadFile, Depends
+from fastapi import FastAPI, File, UploadFile, Depends, Form
+from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from ultralytics import YOLO
 from PIL import Image
 import io
+import json
 from datetime import datetime
 from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
@@ -36,6 +38,11 @@ class DetectionLog(Base):
     time = Column(String)
     date = Column(String)
     imgUrl = Column(String)
+    harvest_count = Column(Integer, default=0)
+    not_harvest_count = Column(Integer, default=0)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    boxes_json = Column(String, nullable=True)
 
 # Create the database tables
 Base.metadata.create_all(bind=engine)
@@ -71,13 +78,33 @@ model = YOLO("best.pt")
 # ─────────────────────────────────────────────
 # Notice we added 'save: bool = False' to the parameters!
 @app.post("/predict/")
-async def predict_image(save: bool = False, file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def predict_image(
+    save: bool = False, 
+    file: UploadFile = File(...), 
+    lat: float = Form(None), 
+    lng: float = Form(None), 
+    db: Session = Depends(get_db)
+):
     image_bytes = await file.read()
     image = Image.open(io.BytesIO(image_bytes))
 
     results = model.predict(image, conf=0.25, imgsz=640, verbose=False)
     
     detections = []
+    harvest_count = 0
+    not_harvest_count = 0
+    
+    for box in results[0].boxes:
+        cls_name = results[0].names[int(box.cls[0])]
+        detections.append({
+            "class": cls_name,
+            "confidence": round(float(box.conf[0]) * 100, 1),
+            "bbox": box.xyxy[0].tolist()
+        })
+        if "harvest" in cls_name.lower() and "not" not in cls_name.lower():
+            harvest_count += 1
+        else:
+            not_harvest_count += 1
     
     # ONLY save to the database if React explicitly asks for it (save=True)
     if save and len(results[0].boxes) > 0:
@@ -99,18 +126,19 @@ async def predict_image(save: bool = False, file: UploadFile = File(...), db: Se
             confidence=confidence,
             time=now.strftime('%I:%M %p'),
             date=now.strftime('%b %#d, %Y'),
-            imgUrl=f"/uploads/{filename}"
+            imgUrl=f"/uploads/{filename}",
+            harvest_count=harvest_count,
+            not_harvest_count=not_harvest_count,
+            latitude=lat,
+            longitude=lng,
+            boxes_json=json.dumps({
+                "boxes": detections,
+                "width": image.width,
+                "height": image.height
+            })
         )
         db.add(new_log)
         db.commit()
-
-    # Always process the boxes to draw on the screen
-    for box in results[0].boxes:
-        detections.append({
-            "class": results[0].names[int(box.cls[0])],
-            "confidence": round(float(box.conf[0]) * 100, 1),
-            "bbox": box.xyxy[0].tolist()
-        })
 
     return {"detections": detections}
 
@@ -124,14 +152,13 @@ def get_history(db: Session = Depends(get_db)):
 def get_dashboard_stats(db: Session = Depends(get_db)):
     logs = db.query(DetectionLog).all()
 
-    total = len(logs)
-    
-    # Calculate counts
-    harvest = sum(1 for log in logs if "harvest" in log.status.lower() and "not" not in log.status.lower())
-    not_harvest = total - harvest
+    # Calculate actual object counts
+    harvest = sum(log.harvest_count for log in logs)
+    not_harvest = sum(log.not_harvest_count for log in logs)
+    total = harvest + not_harvest
     
     # Calculate average confidence
-    avg_conf = sum(log.confidence for log in logs) / total if total > 0 else 0
+    avg_conf = sum(log.confidence for log in logs) / len(logs) if len(logs) > 0 else 0
 
     # Get the 4 most recent activities
     recent_logs = db.query(DetectionLog).order_by(DetectionLog.id.desc()).limit(4).all()
@@ -172,3 +199,15 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
         "trendData": trend_data,
         "recentActivity": recent_activity
     }
+
+@app.get("/export-history/")
+def export_history_csv(db: Session = Depends(get_db)):
+    logs = db.query(DetectionLog).order_by(DetectionLog.id.desc()).all()
+    csv_str = "Log ID,Status,Confidence,Date,Time,Harvest Count,Not Harvest Count,Latitude,Longitude\n"
+    for log in logs:
+        csv_str += f"{log.log_id},{log.status},{log.confidence},{log.date},{log.time},{log.harvest_count},{log.not_harvest_count},{log.latitude or ''},{log.longitude or ''}\n"
+    return Response(
+        content=csv_str,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=history_export.csv"}
+    )

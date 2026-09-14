@@ -10,12 +10,16 @@ if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
 else:
     engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 meta = MetaData()
 meta.reflect(bind=engine)
 
 for table in reversed(meta.sorted_tables):
-    print(f"Clearing table: {table}")
-    with engine.begin() as conn:
-        conn.execute(table.delete())
+    print(f"Dropping table: {table.name}")
+    table.drop(engine)
+
+print("All tables dropped successfully!")
 
 print("All data reset successfully!")

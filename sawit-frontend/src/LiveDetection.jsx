@@ -169,8 +169,28 @@ export default function LiveDetection() {
     await sendToAI(formData);
   };
 
+  const getPosition = () => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve(null);
+      } else {
+        navigator.geolocation.getCurrentPosition(
+          (position) => resolve({ lat: position.coords.latitude, lng: position.coords.longitude }),
+          () => resolve(null),
+          { timeout: 5000, maximumAge: 60000 }
+        );
+      }
+    });
+  };
+
   const sendToAI = async (formData) => {
     try {
+      const pos = await getPosition();
+      if (pos) {
+        formData.append('lat', pos.lat);
+        formData.append('lng', pos.lng);
+      }
+
       const response = await fetch(`${API_URL}/predict/?save=true`, {
         method: 'POST',
         headers: { "Bypass-Tunnel-Reminder": "true" },
