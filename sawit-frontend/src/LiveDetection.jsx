@@ -171,7 +171,7 @@ export default function LiveDetection() {
 
   const sendToAI = async (formData) => {
     try {
-      const response = await fetch(`${API_URL}/predict/`, {
+      const response = await fetch(`${API_URL}/predict/?save=true`, {
         method: 'POST',
         headers: { "Bypass-Tunnel-Reminder": "true" },
         body: formData,
