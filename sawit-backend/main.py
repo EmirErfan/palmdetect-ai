@@ -1,5 +1,6 @@
 from fastapi import FastAPI, File, UploadFile, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from ultralytics import YOLO
 from PIL import Image
 import io
@@ -60,6 +61,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 model = YOLO("best.pt")
 
 # ─────────────────────────────────────────────
@@ -78,17 +82,24 @@ async def predict_image(save: bool = False, file: UploadFile = File(...), db: Se
     # ONLY save to the database if React explicitly asks for it (save=True)
     if save and len(results[0].boxes) > 0:
         now = datetime.now()
+        timestamp_str = now.strftime('%Y%m%d-%H%M%S')
+        
+        # Save image to disk
+        filename = f"LOG-{timestamp_str}.jpg"
+        filepath = os.path.join("uploads", filename)
+        image.convert("RGB").save(filepath, "JPEG")
+        
         best_box = max(results[0].boxes, key=lambda x: x.conf[0])
         status = results[0].names[int(best_box.cls[0])]
         confidence = round(float(best_box.conf[0]) * 100, 1)
         
         new_log = DetectionLog(
-            log_id=f"LOG-{now.strftime('%Y%m%d-%H%M%S')}",
+            log_id=f"LOG-{timestamp_str}",
             status=status,
             confidence=confidence,
             time=now.strftime('%I:%M %p'),
             date=now.strftime('%b %#d, %Y'),
-            imgUrl="https://images.unsplash.com/photo-1590059530419-7e39f37c35bd?auto=format&fit=crop&w=120&q=80"
+            imgUrl=f"/uploads/{filename}"
         )
         db.add(new_log)
         db.commit()

@@ -47,7 +47,7 @@ function LogCard({ log, idx }) {
     >
       <div style={{ width: 58, height: 58, borderRadius: '14px', overflow: 'hidden', flexShrink: 0, border: `1.5px solid ${isHarvest ? 'rgba(45,106,79,0.12)' : 'rgba(212,168,83,0.18)'}`, background: isHarvest ? 'rgba(45,106,79,0.05)' : 'rgba(212,168,83,0.05)' }}>
         {log.imgUrl && !imgError ? (
-          <img src={log.imgUrl} alt="Detection thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={() => setImgError(true)} />
+          <img src={log.imgUrl.startsWith('/') ? `${API_URL}${log.imgUrl}` : log.imgUrl} alt="Detection thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={() => setImgError(true)} />
         ) : (
           <ImagePlaceholder isHarvest={isHarvest} />
         )}
