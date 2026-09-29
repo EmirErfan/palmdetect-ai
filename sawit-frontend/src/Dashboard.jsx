@@ -8,6 +8,7 @@ import {
 } from 'recharts';
 import { useState, useEffect } from 'react';
 import { API_URL } from './config';
+import { translations } from './translations';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -32,7 +33,8 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function Dashboard() {
+export default function Dashboard({ language = 'en' }) {
+  const t = translations[language];
   const [stats, setStats] = useState({
     total: 0,
     harvest: 0,
@@ -96,7 +98,7 @@ export default function Dashboard() {
         }}>
           <Loader2 className="animate-spin text-white" size={24} />
         </div>
-        <p style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: 500 }}>Memuatkan analitik…</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: 500 }}>{t.dashLoading}</p>
       </div>
     );
   }
@@ -139,10 +141,10 @@ export default function Dashboard() {
             </div>
             <div>
               <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '22px', fontWeight: 400, color: 'white', letterSpacing: '-0.3px', lineHeight: 1.1 }}>
-                PalmDetect AI
+                {t.appTitle}
               </h1>
               <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '11px', fontWeight: 500, marginTop: '2px', letterSpacing: '0.3px' }}>
-                Analitik Kelapa Sawit Tepat
+                {t.dashSubtitle}
               </p>
             </div>
           </div>
@@ -153,10 +155,10 @@ export default function Dashboard() {
         {/* Top KPI Bar */}
         <div style={{ marginTop: '24px', background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.12)', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '0' }}>
           {[
-            { label: 'Jumlah', value: stats.total, icon: '🌴' },
-            { label: 'Dituai', value: stats.harvest, icon: '✅' },
-            { label: 'Belum', value: stats.notHarvest, icon: '⏳' },
-            { label: 'Keyakinan', value: `${stats.avgConfidence}%`, icon: '🎯' },
+            { label: t.dashTotal, value: stats.total, icon: '🌴' },
+            { label: t.dashHarvested, value: stats.harvest, icon: '✅' },
+            { label: t.dashUnripe, value: stats.notHarvest, icon: '⏳' },
+            { label: t.dashConfidence, value: `${stats.avgConfidence}%`, icon: '🎯' },
           ].map((item, i, arr) => (
             <div key={i} style={{ flex: 1, textAlign: 'center', borderRight: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.12)' : 'none' }}>
               <div style={{ fontSize: '14px', marginBottom: '2px' }}>{item.icon}</div>
@@ -173,8 +175,8 @@ export default function Dashboard() {
         {/* Section: Distribution */}
         <div style={{ background: 'white', borderRadius: '20px', padding: '18px', marginBottom: '14px', boxShadow: '0 2px 16px rgba(27, 67, 50, 0.06), 0 1px 4px rgba(27, 67, 50, 0.04)', border: '1px solid rgba(27, 67, 50, 0.06)' }}>
           <div className="flex justify-between items-center" style={{ marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>Taburan Pengesanan</h3>
-            <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--primary-muted)', background: 'rgba(64, 145, 108, 0.10)', padding: '3px 8px', borderRadius: '20px' }}>{stats.total} jumlah</span>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>{t.dashDistribution}</h3>
+            <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--primary-muted)', background: 'rgba(64, 145, 108, 0.10)', padding: '3px 8px', borderRadius: '20px' }}>{stats.total} {t.dashTotalCount}</span>
           </div>
           <div className="flex items-center">
             <div style={{ width: '48%', height: 120 }}>
@@ -190,7 +192,7 @@ export default function Dashboard() {
               <div style={{ marginBottom: '14px' }}>
                 <div className="flex items-center gap-2" style={{ marginBottom: '4px' }}>
                   <div style={{ width: 10, height: 10, borderRadius: '3px', background: '#2D6A4F', flexShrink: 0 }} />
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>Sedia Dituai</span>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>{t.dashReadyToHarvest}</span>
                 </div>
                 <div style={{ paddingLeft: '18px' }}>
                   <span style={{ fontSize: '20px', fontWeight: 800, color: '#2D6A4F', lineHeight: 1 }}>{stats.harvest}</span>
@@ -200,7 +202,7 @@ export default function Dashboard() {
               <div>
                 <div className="flex items-center gap-2" style={{ marginBottom: '4px' }}>
                   <div style={{ width: 10, height: 10, borderRadius: '3px', background: '#D4A853', flexShrink: 0 }} />
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>Belum Sedia</span>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>{t.dashUnripe}</span>
                 </div>
                 <div style={{ paddingLeft: '18px' }}>
                   <span style={{ fontSize: '20px', fontWeight: 800, color: '#D4A853', lineHeight: 1 }}>{stats.notHarvest}</span>
@@ -215,15 +217,15 @@ export default function Dashboard() {
         {stats.trendData?.length > 0 && (
           <div style={{ background: 'white', borderRadius: '20px', padding: '18px', marginBottom: '14px', boxShadow: '0 2px 16px rgba(27, 67, 50, 0.06), 0 1px 4px rgba(27, 67, 50, 0.04)', border: '1px solid rgba(27, 67, 50, 0.06)' }}>
             <div className="flex justify-between items-center" style={{ marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>Trend Pengesanan</h3>
+              <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>{t.dashTrend}</h3>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5">
                   <div style={{ width: 8, height: 8, borderRadius: '2px', background: '#2D6A4F' }} />
-                  <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Dituai</span>
+                  <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t.dashHarvested}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div style={{ width: 8, height: 8, borderRadius: '2px', background: '#D4A853' }} />
-                  <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Belum Sedia</span>
+                  <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t.dashUnripe}</span>
                 </div>
               </div>
             </div>
@@ -232,8 +234,8 @@ export default function Dashboard() {
                 <LineChart data={stats.trendData} margin={{ top: 5, right: 4, left: -24, bottom: 0 }}>
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8FA89A', fontSize: 9, fontWeight: 500 }} dy={10} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Line type="monotone" dataKey="harvest" name="Dituai" stroke="#2D6A4F" strokeWidth={2.5} dot={{ r: 3.5, fill: '#2D6A4F', strokeWidth: 0 }} activeDot={{ r: 5, fill: '#2D6A4F', strokeWidth: 2, stroke: 'white' }} />
-                  <Line type="monotone" dataKey="notHarvest" name="Belum Sedia" stroke="#D4A853" strokeWidth={2.5} dot={{ r: 3.5, fill: '#D4A853', strokeWidth: 0 }} activeDot={{ r: 5, fill: '#D4A853', strokeWidth: 2, stroke: 'white' }} />
+                  <Line type="monotone" dataKey="harvest" name={t.dashHarvested} stroke="#2D6A4F" strokeWidth={2.5} dot={{ r: 3.5, fill: '#2D6A4F', strokeWidth: 0 }} activeDot={{ r: 5, fill: '#2D6A4F', strokeWidth: 2, stroke: 'white' }} />
+                  <Line type="monotone" dataKey="notHarvest" name={t.dashUnripe} stroke="#D4A853" strokeWidth={2.5} dot={{ r: 3.5, fill: '#D4A853', strokeWidth: 0 }} activeDot={{ r: 5, fill: '#D4A853', strokeWidth: 2, stroke: 'white' }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -243,7 +245,7 @@ export default function Dashboard() {
         {/* Section: Weather + Recent Activity */}
         <div className="grid grid-cols-2 gap-3">
           <div style={{ background: 'white', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 16px rgba(27, 67, 50, 0.06), 0 1px 4px rgba(27, 67, 50, 0.04)', border: '1px solid rgba(27, 67, 50, 0.06)' }}>
-            <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.1px' }}>Cuaca Semasa</h3>
+            <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.1px' }}>{t.dashWeather}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
               {weather ? (
                 <>
@@ -252,23 +254,23 @@ export default function Dashboard() {
                   </div>
                   <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1, marginTop: '4px' }}>{Math.round(weather.temperature)}°C</span>
                   <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 500 }}>
-                    {weather.weathercode < 3 ? 'Cerah' : weather.weathercode < 60 ? 'Mendung' : 'Hujan'}
+                    {weather.weathercode < 3 ? t.dashSunny : weather.weathercode < 60 ? t.dashCloudy : t.dashRainy}
                   </span>
                 </>
               ) : (
                 <>
                   <Loader2 size={16} className="animate-spin text-gray-400" />
-                  <span style={{ fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center' }}>Mendapatkan<br/>Lokasi...</span>
+                  <span style={{ fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center' }}>{t.dashGettingLocation}</span>
                 </>
               )}
             </div>
           </div>
 
           <div style={{ background: 'white', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 16px rgba(27, 67, 50, 0.06), 0 1px 4px rgba(27, 67, 50, 0.04)', border: '1px solid rgba(27, 67, 50, 0.06)' }}>
-            <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.1px' }}>Aktiviti Terkini</h3>
+            <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.1px' }}>{t.dashRecentActivity}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {!stats.recentActivity || stats.recentActivity.length === 0 ? (
-                <p style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'center', paddingTop: '12px' }}>Belum ada aktiviti</p>
+                <p style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'center', paddingTop: '12px' }}>{t.dashNoActivity}</p>
               ) : (
               stats.recentActivity.map((activity, idx) => (
                 <div key={idx} className="flex justify-between items-start">
