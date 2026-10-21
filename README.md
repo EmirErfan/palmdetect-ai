@@ -24,7 +24,7 @@ Knowing when a bunch is ready is a skill that people mostly learn through experi
 
 ## Our Solution
 
-PalmDetect AI lets a user scan a bunch with their phone camera, either live or from a photo. A YOLO object detection model labels each bunch as **HARVEST** or **NOT_HARVEST** and shows a confidence score, so learners get instant feedback and ripeness checks become more consistent. The model was trained on [dataset description].
+PalmDetect AI lets a user scan a bunch with their phone camera, either live or from a photo. A YOLO object detection model labels each bunch as **HARVEST** or **NOT_HARVEST** and shows a confidence score, so learners get instant feedback and ripeness checks become more consistent.
 
 ## Screenshots
 
